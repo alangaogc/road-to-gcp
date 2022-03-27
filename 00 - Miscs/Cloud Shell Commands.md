@@ -6,33 +6,64 @@ https://cloud.google.com/shell/docs/resetting-cloud-shell
 
 <h2>GCP Project</h2>
 1. List current project information -
-gcloud config list
+   ``gcloud config list``
 2. Switch to a specific project -
-gcloud config set project $PROJECT_1_ID
+   ``gcloud config set project $PROJECT_1_ID``
 
 <h2>VM Creation</h2>
-1. List all zones - 
+1. List all zones -
+````
 gcloud compute zones list | grep us-central1
+````
 2. List all available regions -
-gcloud compute regions list
+   ``gcloud compute regions list``
 3. List all VMs -
-gcloud compute instances list --sort-by=ZONE
-4. Set default zone for a new vm - 
-gcloud config set compute/zone us-central1-c
+   ``gcloud compute instances list --sort-by=ZONE``
+4. Set default zone for a new vm -
+   ``gcloud config set compute/zone us-central1-c``
 5. Create a new vm -
+````
 gcloud compute instances create "my-vm-2" \
 --machine-type "n1-standard-1" \
 --image-project "debian-cloud" \
 --image-family "debian-10" \
 --subnet "default"
+````
 6. Create a new VM with network details -
 gcloud compute instances create privatenet-us-vm --zone=us-central1-c --machine-type=f1-micro --subnet=privatesubnet-us --image-family=debian-10 --image-project=debian-cloud --boot-disk-size=10GB --boot-disk-type=pd-standard --boot-disk-device-name=privatenet-us-vm
 7. ssh to VM vm-internal -
 gcloud compute ssh vm-internal --zone us-central1-c --tunnel-through-iap
+8. Move a VM to a new zone (within same region) -
+gcloud compute instances move
 
 <h2>VM Utilities</h2>
 1. Install a new web service - 
 sudo apt-get intall nginx-light -y
+2. See unused and used memory and swap space -
+free
+3. See details about the RAM installed -
+sudo dmidecode -t 17
+4. List the number of CPU processors -
+nproc
+5. See details about the CPUs -
+lscpu
+6. Install headless JRE -
+sudo apt-get install -y default-jre-headless
+7. Install wget -
+sudo apt-get install wget
+8. Run application with Screen terminal (-S flag to rename the terminal to mcs) -
+sudo screen -S mcs java -Xmx1024M -Xms1024M -jar server.jar nogui
+9. Detach the Screen terminal -
+Ctrl+A, Ctrl+D
+10. Reattach the Screen terminal -
+sudo screen -r mcs
+11. Create a sample backup file -
+````
+#!/bin/bash
+screen -r mcs -X stuff '/save-all\n/save-off\n'
+/usr/bin/gsutil cp -R ${BASH_SOURCE%/*}/world gs://${YOUR_BUCKET_NAME}-minecraft-backup/$(date "+%Y%m%d-%H%M%S")-world
+screen -r mcs -X stuff '/save-on\n'
+````
 
 <h2>VM Storage</h2>
 1. Create a storage bucket - 
@@ -47,6 +78,12 @@ gs://$DEVSHELL_PROJECT_ID/my-excellent-blog.png
 gsutil ls gs://$DEVSHELL_PROJECT_ID
 5. Modify ACL to readable by everyone -
 gsutil acl ch -u allUsers:R gs://$DEVSHELL_PROJECT_ID/my-excellent-blog.png
+6. Format disk - 
+sudo mkfs.ext4 -F -E lazy_itable_init=0,\
+lazy_journal_init=0,discard \
+/dev/disk/by-id/google-minecraft-disk
+7. Mount disk to a filesystem -
+sudo mount -o discard,defaults /dev/disk/by-id/google-minecraft-disk /home/minecraft
 
 <h2>Kubernetes Engine</h2>
 1. Create a Kubernetes cluster (k1) - 
